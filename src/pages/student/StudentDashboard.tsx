@@ -7,9 +7,10 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
   CheckSquare, BookOpen, CreditCard, Calendar, AlertTriangle,
-  Clock, MapPin, User,
+  Clock, MapPin, User, Sparkles, Check, BellRing,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { analyzeTomorrowTimetable } from '@/utils/timetableReminder';
 
 function AnimatedNumber({ value, suffix = '' }: { value: number; suffix?: string }) {
   const [display, setDisplay] = useState(0);
@@ -44,6 +45,13 @@ export default function StudentDashboard() {
   const fee = getFeeRecord(currentStudent.id);
   const leaves = getLeavesByStudent(currentStudent.id);
   const pendingLeaves = leaves.filter(l => l.status === 'pending').length;
+
+  const tomorrowAnalysis = analyzeTomorrowTimetable(
+    currentStudent.department,
+    currentStudent.year,
+    currentStudent.section || 'A'
+  );
+  const [dashboardChecklist, setDashboardChecklist] = useState(tomorrowAnalysis.checklist);
 
   const gpaData = currentStudent.semesterGPA.map((gpa, i) => ({
     semester: `Sem ${i + 1}`,
@@ -242,6 +250,90 @@ export default function StudentDashboard() {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* AI Tomorrow Schedule & Packing Reminder Widget */}
+          <div className="card-elevated border-l-4 overflow-hidden" style={{ borderLeftColor: '#C89B3C' }}>
+            <div className="px-5 py-4 border-b border-border bg-gradient-to-r from-amber-500/10 via-amber-50/50 to-white flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-brass to-brass-dark text-navy flex items-center justify-center font-bold shadow-xs">
+                  <Sparkles size={18} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h2 className="font-bold text-navy text-sm">Tomorrow's Schedule & Bag Packing Checklist (AI)</h2>
+                    <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-brass/20 text-brass-dark">
+                      Smart Prep
+                    </span>
+                  </div>
+                  <p className="text-xs text-text-secondary mt-0.5">
+                    {tomorrowAnalysis.targetDay}, {tomorrowAnalysis.dateStr} · {tomorrowAnalysis.slots.length} Classes scheduled
+                  </p>
+                </div>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 text-xs text-text-secondary">
+                <BellRing size={13} className="text-brass animate-pulse" />
+                <span className="font-semibold text-navy">Daily 8 PM Alert</span>
+              </div>
+            </div>
+
+            <div className="p-5 space-y-4">
+              {/* Lab notice if applicable */}
+              {tomorrowAnalysis.hasLab && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-200/80 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-amber-950 font-semibold">
+                    <span className="text-base">🧪</span>
+                    <span>Lab Practical Scheduled: Web Technologies in {tomorrowAnalysis.labRooms.join(', ')}</span>
+                  </div>
+                  <span className="text-[10px] font-bold text-amber-900 bg-amber-200/70 px-2 py-0.5 rounded uppercase tracking-wider">
+                    White Apron Mandatory
+                  </span>
+                </div>
+              )}
+
+              {/* Checklist items */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-text-secondary">
+                    🎒 Packing Checklist ({dashboardChecklist.filter(c => c.packed).length}/{dashboardChecklist.length} Packed)
+                  </p>
+                  <span className="text-xs text-text-muted">Tap to mark packed</span>
+                </div>
+
+                <div className="grid sm:grid-cols-2 gap-2.5">
+                  {dashboardChecklist.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => setDashboardChecklist(prev => prev.map(c => c.id === item.id ? { ...c, packed: !c.packed } : c))}
+                      className={`p-3 rounded-xl border text-xs cursor-pointer select-none transition-all flex items-start gap-2.5 ${
+                        item.packed
+                          ? 'bg-emerald-50/60 border-emerald-200 text-text-secondary'
+                          : 'bg-ivory border-border hover:border-brass/60 shadow-2xs'
+                      }`}
+                    >
+                      <div className="mt-0.5 shrink-0">
+                        {item.packed ? (
+                          <div className="w-4 h-4 rounded bg-safe text-white flex items-center justify-center">
+                            <Check size={11} className="stroke-[3]" />
+                          </div>
+                        ) : (
+                          <div className="w-4 h-4 rounded border border-border bg-white" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span>{item.icon}</span>
+                          <span className={`font-semibold ${item.packed ? 'line-through text-text-muted' : 'text-navy'}`}>
+                            {item.item}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-text-muted mt-0.5 truncate">{item.reason}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
