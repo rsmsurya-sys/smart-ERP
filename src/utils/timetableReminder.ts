@@ -63,7 +63,7 @@ export function analyzeTomorrowTimetable(
   section: string = 'A',
   customDay?: string
 ): DayAnalysis {
-  const { day: defaultDay, dayTa: defaultDayTa, dateStr } = getTomorrowDayName();
+  const { day: defaultDay, dateStr } = getTomorrowDayName();
   const targetDay = customDay || defaultDay;
   const targetDayTa = dayNamesTa[targetDay] || targetDay;
 

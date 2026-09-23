@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   MessageCircle, X, Send, Globe, CheckSquare, Square,
-  Clock, MapPin, Copy, Bell, BellRing, Check, Sparkles, ChevronDown, ChevronUp, AlertCircle
+  MapPin, Copy, Bell, BellRing, Check, Sparkles, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { getSubjectAttendance, getFeeRecord, getExamsForDepartment, getMarks } from '@/data/mockData';
